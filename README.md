@@ -1,6 +1,6 @@
 # Conversor NL → CPC  
 Conversor de frases em **Linguagem Natural (NL)** para **Cálculo Proposicional (CPC)** usando JavaScript.  
-Projeto desenvolvido para a disciplina de Lógica Para Computação, seguindo os requisitos solicitados pelo professor.
+Projeto desenvolvido para a disciplina de Lógica Aplicada, seguindo os requisitos solicitados pelo professor.
 
 ---
 
@@ -56,15 +56,15 @@ Criar um sistema capaz de:
 ---
 
 ## 🏗️ Arquitetura e funcionamento (resumo)
-1. **Entrada (NL)** — string em português.
-2. **Pré-processamento** — normalização de vírgulas, remoção de pontuação irrelevante.
+1. **Entrada (NL)** — string em português.  
+2. **Pré-processamento** — normalização de vírgulas, remoção de pontuação irrelevante.  
 3. **Parser baseado em regras**:
    - `parseDisjunction` (divide por "ou" — menor precedência);
    - `parseConjunction` (divide por "e", "mas" ou vírgulas);
-   - `parseAtom` (detecta negações e cria letras proposicionais).
-4. **Mapeamento** — cada proposição única recebe uma letra: `P, Q, R, S...`.
-5. **Montagem da fórmula** — combina subfórmulas com operadores (∧, ∨, →, ↔) e negações (¬).
-6. **Saída (CPC)** — exibe fórmula + mapeamento.
+   - `parseAtom` (detecta negações e cria letras proposicionais).  
+4. **Mapeamento** — cada proposição única recebe uma letra: `P, Q, R, S...`.  
+5. **Montagem da fórmula** — combina subfórmulas com operadores (∧, ∨, →, ↔) e negações (¬).  
+6. **Saída (CPC)** — exibe fórmula + mapeamento.  
 7. **CPC → NL** — substitui letras por significados (pedidos via `prompt`), insere "Se" quando houver implicação e tenta posicionar "não" antes do verbo (heurística).
 
 > Observação: o parser é **baseado em regras (regex + divisão por conectivos)** — não usa análise sintática profunda (dependência). Isso torna o sistema rápido e interpretável, porém sujeito a ambiguidade em frases muito complexas.
@@ -72,17 +72,16 @@ Criar um sistema capaz de:
 ---
 
 ## 📘 Estratégia de tradução (detalhes)
-- **Regra de precedência:** `¬` > `∧` > `∨` ; implicação e bicondicional tratadas como operadores de nível superior em sentenças do tipo "Se ... então ...".
-- **Mapeamento reutilizável:** mesmos textos (ignorando diferença de caixa) mapeiam para a mesma letra.
+- **Regra de precedência:** `¬` > `∧` > `∨` ; implicação e bicondicional tratadas como operadores de nível superior em sentenças do tipo "Se ... então ...".  
+- **Mapeamento reutilizável:** mesmos textos (ignorando diferença de caixa) mapeiam para a mesma letra.  
 - **Negação:**
   - Se aparece no início de uma subfrase: aplica-se à subproposição inteira (ex.: "Não (A e B)" → `¬(P ∧ Q)`).
-  - Se aparece dentro do átomo (ex.: "a grama não está molhada") é removida do texto salvo e a letra recebe `¬`.
+  - Se aparece dentro do átomo (ex.: "a grama não está molhada") é removida do texto salvo e a letra recebe `¬`.  
 - **Heurística para CPC → NL:** tenta inserir "não" antes do verbo na definição da proposição (lista de sufixos/verbos comuns). Pode falhar em casos complexos — documentado em limitações.
 
 ---
 
 ## 🧪 Exemplos de input / output (para o relatório)
-Abaixo algumas frases de teste — copie para verificar comportamento. Na coluna "Resposta esperada" está a fórmula e o mapeamento sugerido.
 
 | # | Entrada (NL) | Resposta esperada (CPC) |
 |---|----------------|-------------------------|
@@ -101,6 +100,30 @@ Abaixo algumas frases de teste — copie para verificar comportamento. Na coluna
 
 ---
 
+## ⚠️ Limitações e Possibilidades de Melhoria
+
+### 🔹 Limitações atuais
+- **Parser baseado em regras simples:** frases com estrutura muito complexa, ambiguidade semântica ou múltiplos conectivos sobrepostos podem gerar interpretações incorretas.  
+- **Dependência de conectivos explícitos:** sem conectivos como “e”, “ou” ou “se”, o sistema pode não separar corretamente as proposições.  
+- **Negação limitada:** a heurística de detectar “não” pode falhar quando a frase é longa ou pouco estruturada.  
+- **CPC → NL ainda é heurístico:** pode gerar frases que soam pouco naturais.  
+- **Sem análise sintática real:** ausência de parsing profundo (ex.: dependência ou árvores sintáticas).
+
+### 🔹 Possíveis melhorias futuras
+- Implementar um **parser sintático completo** (Earley, CYK, dependência).  
+- Usar uma **LLM auxiliar** para desambiguação e interpretação semântica.  
+- Criar interface com **visualização de árvores lógicas**.  
+- Adicionar suporte a novos conectivos (XOR, NAND etc.).  
+- Permitir **correção manual da interpretação** pelo usuário.  
+- Criar um **conjunto de testes automatizados** para garantir precisão.
+
+---
+
+## 🎥 Vídeo de Demonstração
+📹🔗 **https://drive.google.com/file/d/1VR3VlYhmYHna6-5diryKYD-V3zasM_jQ/view?usp=sharing**
+
+---
+
 ## 👩‍💻 Autoras
-- **Júlia Rezende** — Estudante de Ciência da Computação  
 - **Júlia Moreira** — Estudante de Sistemas de Informação
+- **Júlia Rezende** — Estudante de Ciência da Computação  

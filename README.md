@@ -7,7 +7,7 @@ Projeto desenvolvido para a disciplina de Lógica Para Computação, seguindo os
 ## 🌐 Acesse o Conversor Online
 A aplicação está disponível para uso direto no navegador, sem instalação:
 
-🔗 **https://moreiraju.github.io/nl-cpc-conversor/**
+🔗 **(https://juliarezende521.github.io/nl-cpc-conversor/)**
 
 ---
 

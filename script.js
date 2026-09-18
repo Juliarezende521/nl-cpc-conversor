@@ -283,7 +283,7 @@ function traduzirFormulaParaNL(formula, mapping) {
             frase = frase.replace(regexNorm, texto);
         });
 
-    return frase.replace(/\s+/g, " ").trim();
+    return frase.replace(/\s+/g, " ").replace(/\s+,/g, ",").trim();
 }
 
 function converterParaNL() {

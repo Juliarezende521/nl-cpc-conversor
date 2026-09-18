@@ -8,18 +8,26 @@ function inserirSimbolo(simbolo) {
     textarea.focus();
 }
 
-//Gera uma nova letra caso tenha mais de 2 proposições
-// ---------- UTIL: gera P, Q, R, S... ----------
+// ---------- UTIL: gera P, Q, R... Z, A... O, P1... ----------
 function nextLetterGenerator() {
+    const letras = "PQRSTUVWXYZABCDEFGHIJKLMNO";
     let index = 0;
+
     return function () {
-        // base a partir de P (80 = 'P')
-        const baseCode = 80 + (index % 26);
-        const baseLetter = String.fromCharCode(baseCode);
-        const suffix = Math.floor(index / 26) > 0 ? String(Math.floor(index / 26)) : "";
+        const letra = letras[index % letras.length];
+        const ciclo = Math.floor(index / letras.length);
         index++;
-        return baseLetter + suffix;
+        return ciclo === 0 ? letra : `${letra}${ciclo}`;
     };
+}
+
+function escapeHtml(valor) {
+    return String(valor)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 // ---------- Parser NL -> árvore lógica simples ----------
@@ -215,14 +223,16 @@ function converterParaCPC() {
     }
 
     if (!formula) {
-        saida.innerHTML = "⚠️ Não foi possível converter. Use frases como 'Se X então Y', 'X e Y', 'X ou Y', 'não X' ou 'X ↔ Y'.";
+        saida.textContent = "⚠️ Não foi possível converter. Use frases como 'Se X então Y', 'X e Y', 'X ou Y', 'não X' ou 'X ↔ Y'.";
         return;
     }
 
     // Exibe
-    const mappingLines = Object.entries(mapping).map(([letra, texto]) => `${letra} = ${texto}`).join("<br>");
+    const mappingLines = Object.entries(mapping)
+        .map(([letra, texto]) => `${escapeHtml(letra)} = ${escapeHtml(texto)}`)
+        .join("<br>");
     saida.innerHTML = `
-        <b>Fórmula em Cálculo Proposicional:</b> ${formula}<br><br>
+        <b>Fórmula em Cálculo Proposicional:</b> ${escapeHtml(formula)}<br><br>
         <b>Mapeamento:</b><br>${mappingLines}
     `;
     if (window.MathJax) MathJax.typeset();
@@ -243,10 +253,23 @@ function converterParaNL() {
         return;
     }
 
-    letras.forEach(l => {
-        const significado = prompt(`Digite o significado de ${l}:`);
-        mapping[l] = significado.trim();
-    });
+    for (const letra of letras) {
+        const significado = prompt(`Digite o significado de ${letra}:`);
+
+        if (significado === null) {
+            document.getElementById("saida").textContent = "Conversão cancelada.";
+            return;
+        }
+
+        const texto = significado.trim();
+        if (!texto) {
+            document.getElementById("saida").textContent =
+                `Informe um significado para a proposição ${letra}.`;
+            return;
+        }
+
+        mapping[letra] = texto;
+    }
 
     let frase = formula;
 
@@ -283,9 +306,9 @@ function converterParaNL() {
     frase = frase.replace(/\s+/g, " ").trim();
 
     document.getElementById("saida").innerHTML =
-        `<strong>Frase em Linguagem Natural:</strong><br>${frase}<br><br>` +
+        `<strong>Frase em Linguagem Natural:</strong><br>${escapeHtml(frase)}<br><br>` +
         `<strong>Mapeamento:</strong><br>${Object.entries(mapping)
-            .map(([l, t]) => `${l} = ${t}`)
+            .map(([l, t]) => `${escapeHtml(l)} = ${escapeHtml(t)}`)
             .join("<br>")}`;
 }
 
@@ -293,4 +316,14 @@ function converterParaNL() {
 function limparTudo() {
     document.getElementById("entrada").value = "";
     document.getElementById("saida").innerHTML = "";
+}
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        nextLetterGenerator,
+        parseAtom,
+        parseConjunction,
+        parseDisjunction,
+        escapeHtml
+    };
 }

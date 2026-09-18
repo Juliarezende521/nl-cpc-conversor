@@ -5,7 +5,9 @@ const {
     nextLetterGenerator,
     parseAtom,
     parseDisjunction,
-    escapeHtml
+    escapeHtml,
+    extrairProposicoes,
+    traduzirFormulaParaNL
 } = require("../script.js");
 
 test("gera letras válidas depois de Z e continua com sufixos", () => {
@@ -64,4 +66,33 @@ test("escapa HTML fornecido pelo usuário", () => {
         escapeHtml('<img src=x onerror="alert(1)">'),
         "&lt;img src=x onerror=&quot;alert(1)&quot;&gt;"
     );
+});
+
+test("extrai proposições simples e numeradas sem duplicar", () => {
+    assert.deepEqual(
+        extrairProposicoes("P ∧ Q → P1 ∨ P"),
+        ["P", "Q", "P1"]
+    );
+});
+
+test("traduz implicação usando o mapeamento informado", () => {
+    const frase = traduzirFormulaParaNL("(P ∧ Q) → R", {
+        P: "João estuda",
+        Q: "Maria trabalha",
+        R: "Pedro dorme"
+    });
+
+    assert.equal(
+        frase,
+        "Se João estuda e Maria trabalha, então Pedro dorme"
+    );
+});
+
+test("posiciona a negação na proposição correspondente", () => {
+    const frase = traduzirFormulaParaNL("¬P ∨ Q", {
+        P: "João estuda",
+        Q: "Maria trabalha"
+    });
+
+    assert.equal(frase, "João não estuda ou Maria trabalha");
 });

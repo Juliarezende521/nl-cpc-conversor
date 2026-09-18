@@ -1,4 +1,7 @@
 # Conversor NL → CPC  
+
+[![Testes JavaScript](https://github.com/Juliarezende521/nl-cpc-conversor/actions/workflows/testes.yml/badge.svg)](https://github.com/Juliarezende521/nl-cpc-conversor/actions/workflows/testes.yml)
+
 Conversor de frases em **Linguagem Natural (NL)** para **Cálculo Proposicional (CPC)** usando JavaScript.  
 Projeto desenvolvido para a disciplina de Lógica Para Computação, seguindo os requisitos solicitados pelo professor.
 
@@ -115,12 +118,30 @@ Criar um sistema capaz de:
 - Criar interface com **visualização de árvores lógicas**.  
 - Adicionar suporte a novos conectivos (XOR, NAND etc.).  
 - Permitir **correção manual da interpretação** pelo usuário.  
-- Criar um **conjunto de testes automatizados** para garantir precisão.
+- Ampliar o **conjunto de testes automatizados** com novos casos de ambiguidade e precedência.
 
 ---
 
 ## 🎥 Vídeo de Demonstração
 📹🔗 **https://drive.google.com/file/d/1VR3VlYhmYHna6-5diryKYD-V3zasM_jQ/view?usp=sharing**
+
+---
+
+## ✅ Melhorias desta versão
+
+Este repositório é um fork do projeto acadêmico desenvolvido em dupla. Nesta versão, **Júlia Rezende** continuou a evolução técnica com:
+
+- Correção do gerador de proposições após a letra Z
+- Tratamento do cancelamento e de significados vazios na conversão CPC → NL
+- Proteção da saída contra injeção de HTML
+- Melhorias de acessibilidade e orientação na interface
+- Cinco testes automatizados executados pelo GitHub Actions
+
+Para executar os testes localmente:
+
+```bash
+npm test
+```
 
 ---
 

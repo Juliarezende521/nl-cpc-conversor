@@ -5,53 +5,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Conversor acadêmico entre linguagem natural e cálculo proposicional.">
+    <meta name="theme-color" content="#172554">
     <title>Tradutor NL ↔ CPC</title>
-    <!-- Biblioteca para renderizar símbolos lógicos -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-    <!-- Link para CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="container">
-        <h1>🧠 Tradutor NL ↔ CPC</h1>
+    <main class="page-shell">
+        <header class="hero">
+            <span class="eyebrow">Lógica para Computação</span>
+            <h1>Tradutor <span>NL ↔ CPC</span></h1>
+            <p>Converta frases em português para Cálculo Proposicional e faça o caminho inverso de forma simples.</p>
+        </header>
 
-        <div class="input-area">
-            <label for="entrada" class="sr-only">Frase em português ou fórmula lógica</label>
-            <textarea id="entrada" placeholder="Digite uma frase em português ou uma fórmula lógica..." aria-describedby="ajuda-entrada"></textarea>
-
-            <!-- Botões para inserir símbolos -->
-            <div class="simbolos-input">
-                <button type="button" onclick="inserirSimbolo('¬')" aria-label="Inserir negação">¬</button>
-                <button type="button" onclick="inserirSimbolo('∧')" aria-label="Inserir conjunção">∧</button>
-                <button type="button" onclick="inserirSimbolo('∨')" aria-label="Inserir disjunção">∨</button>
-                <button type="button" onclick="inserirSimbolo('→')" aria-label="Inserir implicação">→</button>
-                <button type="button" onclick="inserirSimbolo('↔')" aria-label="Inserir bicondicional">↔</button>
+        <section class="workspace" aria-labelledby="titulo-conversor">
+            <div class="workspace-header">
+                <div>
+                    <p class="step-label">Entrada</p>
+                    <h2 id="titulo-conversor">Escreva uma frase ou fórmula</h2>
+                </div>
+                <button type="button" class="button button-ghost" onclick="limparTudo()">Limpar</button>
             </div>
-        </div>
 
-        <div class="botoes">
-            <h3 id="posicaoF">Selecione qual a conversão desejada:</h3>
-            <button type="button" onclick="converterParaCPC()">NL → CPC</button>
-            <button type="button" onclick="converterParaNL()">CPC → NL</button>
-            <button type="button" class="apagar" onclick="limparTudo()">🗑️ Apagar</button>
-        </div>
+            <label for="entrada" class="sr-only">Frase em português ou fórmula lógica</label>
+            <textarea
+                id="entrada"
+                placeholder="Ex.: Se chover então a grama ficará molhada"
+                aria-describedby="ajuda-entrada"
+            ></textarea>
 
-        <div id="saida" role="status" aria-live="polite"></div>
+            <div class="symbol-toolbar" aria-label="Inserir símbolos lógicos">
+                <span>Símbolos</span>
+                <button type="button" onclick="inserirSimbolo('¬')" aria-label="Inserir negação" title="Negação">¬</button>
+                <button type="button" onclick="inserirSimbolo('∧')" aria-label="Inserir conjunção" title="Conjunção">∧</button>
+                <button type="button" onclick="inserirSimbolo('∨')" aria-label="Inserir disjunção" title="Disjunção">∨</button>
+                <button type="button" onclick="inserirSimbolo('→')" aria-label="Inserir implicação" title="Implicação">→</button>
+                <button type="button" onclick="inserirSimbolo('↔')" aria-label="Inserir bicondicional" title="Bicondicional">↔</button>
+            </div>
 
-        <div class="simbolos">
-            <h3>Símbolos lógicos suportados:</h3>
-            <p>∧ (e) &nbsp;&nbsp; ∨ (ou) &nbsp;&nbsp; ¬ (não) &nbsp;&nbsp; → (se ..., então...) &nbsp;&nbsp; ↔ (se e somente se)
-            </p>
-            <p id="ajuda-entrada">O conversor usa regras e funciona melhor com frases diretas e conectivos explícitos.</p>
-            <p>Exemplo: "Se chover, então a grama ficará molhada."</p>
-            <h4>Conversão esperada: P → Q</h4>
-        </div>
-    </div>
+            <div class="conversion-actions" aria-label="Escolher conversão">
+                <button type="button" class="button button-primary" onclick="converterParaCPC()">
+                    <span>Frase para fórmula</span>
+                    <strong>NL → CPC</strong>
+                </button>
+                <button type="button" class="button button-secondary" onclick="converterParaNL()">
+                    <span>Fórmula para frase</span>
+                    <strong>CPC → NL</strong>
+                </button>
+            </div>
 
-    <!-- Script JS -->
+            <section id="mapeamento-cpc" class="mapping-panel" aria-labelledby="titulo-mapeamento" hidden>
+                <div class="mapping-heading">
+                    <div>
+                        <p class="step-label">Significados</p>
+                        <h2 id="titulo-mapeamento">Defina as proposições</h2>
+                    </div>
+                    <button type="button" class="close-button" onclick="cancelarMapeamento()" aria-label="Cancelar mapeamento">×</button>
+                </div>
+                <p>Informe o significado de cada letra para montar a frase em linguagem natural.</p>
+                <form id="form-mapeamento" onsubmit="finalizarConversaoParaNL(event)">
+                    <div id="campos-mapeamento" class="mapping-fields"></div>
+                    <p id="erro-mapeamento" class="form-error" role="alert"></p>
+                    <button type="submit" class="button button-primary button-full">Gerar frase em português</button>
+                </form>
+            </section>
+
+            <section class="result-card" aria-labelledby="titulo-resultado">
+                <p class="step-label">Resultado</p>
+                <h2 id="titulo-resultado">Sua conversão aparecerá aqui</h2>
+                <div id="saida" role="status" aria-live="polite">
+                    <p class="empty-state">Preencha o campo acima e escolha uma das conversões.</p>
+                </div>
+            </section>
+        </section>
+
+        <aside class="guide" aria-labelledby="titulo-guia">
+            <div>
+                <p class="step-label">Guia rápido</p>
+                <h2 id="titulo-guia">Símbolos suportados</h2>
+                <p id="ajuda-entrada">O conversor usa regras e funciona melhor com frases diretas e conectivos explícitos.</p>
+            </div>
+            <dl class="symbol-list">
+                <div><dt>∧</dt><dd>e</dd></div>
+                <div><dt>∨</dt><dd>ou</dd></div>
+                <div><dt>¬</dt><dd>não</dd></div>
+                <div><dt>→</dt><dd>se… então</dd></div>
+                <div><dt>↔</dt><dd>se e somente se</dd></div>
+            </dl>
+        </aside>
+
+        <footer>
+            Projeto acadêmico desenvolvido por Júlia Moreira e Júlia Rezende.
+        </footer>
+    </main>
+
     <script src="script.js"></script>
 </body>
 

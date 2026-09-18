@@ -239,83 +239,144 @@ function converterParaCPC() {
 }
 
 // --- Converte de CPC → Linguagem Natural ---
-function converterParaNL() {
-    const formula = document.getElementById("entrada").value.trim();
-    if (!formula) {
-        alert("Por favor, insira uma fórmula em cálculo proposicional.");
-        return;
-    }
+let formulaPendente = "";
 
-    const mapping = {};
-    const letras = [...new Set(formula.match(/[A-Z]/g))];
-    if (letras.length === 0) {
-        alert("Nenhuma proposição encontrada na fórmula.");
-        return;
-    }
+function extrairProposicoes(formula) {
+    return [...new Set(formula.match(/\b[A-Z](?:\d+)?\b/g) || [])];
+}
 
-    for (const letra of letras) {
-        const significado = prompt(`Digite o significado de ${letra}:`);
+function escapeRegExp(valor) {
+    return valor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
-        if (significado === null) {
-            document.getElementById("saida").textContent = "Conversão cancelada.";
-            return;
-        }
+function inserirNegacaoNoTexto(texto) {
+    const partes = texto.split(/\s+/);
+    let posVerbo = partes.findIndex(parte =>
+        /ar$|er$|ir$|rá$|está|esta|é|foi|vai|fica|ficará|molhada|chove|chover|fazer|fará|trabalha|estuda|corre|salta|colhe|será|terá|serão|terão/i.test(parte)
+    );
 
-        const texto = significado.trim();
-        if (!texto) {
-            document.getElementById("saida").textContent =
-                `Informe um significado para a proposição ${letra}.`;
-            return;
-        }
+    if (posVerbo === -1) posVerbo = Math.max(partes.length - 1, 0);
+    partes.splice(posVerbo, 0, "não");
+    return partes.join(" ");
+}
 
-        mapping[letra] = texto;
-    }
-
-    let frase = formula;
-
-    frase = frase
+function traduzirFormulaParaNL(formula, mapping) {
+    let frase = formula
         .replace(/[()]/g, "")
         .replace(/↔/g, " se e somente se ")
         .replace(/→/g, " então ")
         .replace(/∧/g, " e ")
         .replace(/∨/g, " ou ");
 
-    // ✅ Agora adiciona "Se" corretamente antes do antecedente da implicação
     if (frase.includes(" então ")) {
         frase = frase.replace(/^(.*?) então /i, "Se $1, então ");
     }
 
-    // Substituição das proposições
-    Object.entries(mapping).forEach(([letra, texto]) => {
-        const regexNeg = new RegExp(`¬${letra}`, "g");
-        const regexNorm = new RegExp(`\\b${letra}\\b`, "g");
+    Object.entries(mapping)
+        .sort(([letraA], [letraB]) => letraB.length - letraA.length)
+        .forEach(([letra, texto]) => {
+            const letraSegura = escapeRegExp(letra);
+            const regexNeg = new RegExp(`¬\\s*${letraSegura}\\b`, "g");
+            const regexNorm = new RegExp(`\\b${letraSegura}\\b`, "g");
 
-        frase = frase.replace(regexNeg, () => {
-            const partes = texto.split(" ");
-            let posVerbo = partes.findIndex(p =>
-                /ar$|er$|ir$|rá$|está|esta|é|foi|vai|fica|ficará|molhada|chove|chover|fazer|fará|trabalha|estuda|corre|salta|colhe|será|terá|serão|terão/i.test(p)
-            );
-            if (posVerbo === -1) posVerbo = partes.length - 1;
-            partes.splice(posVerbo, 0, "não");
-            return partes.join(" ");
+            frase = frase.replace(regexNeg, () => inserirNegacaoNoTexto(texto));
+            frase = frase.replace(regexNorm, texto);
         });
 
-        frase = frase.replace(regexNorm, texto);
+    return frase.replace(/\s+/g, " ").trim();
+}
+
+function converterParaNL() {
+    const formula = document.getElementById("entrada").value.trim();
+    const saida = document.getElementById("saida");
+
+    if (!formula) {
+        saida.textContent = "Digite uma fórmula em Cálculo Proposicional para converter.";
+        return;
+    }
+
+    const letras = extrairProposicoes(formula);
+    if (letras.length === 0) {
+        saida.textContent = "Nenhuma proposição foi encontrada. Use letras maiúsculas como P, Q e R.";
+        return;
+    }
+
+    formulaPendente = formula;
+    const painel = document.getElementById("mapeamento-cpc");
+    const campos = document.getElementById("campos-mapeamento");
+    const erro = document.getElementById("erro-mapeamento");
+
+    campos.replaceChildren();
+    erro.textContent = "";
+
+    letras.forEach((letra, indice) => {
+        const grupo = document.createElement("div");
+        grupo.className = "mapping-field";
+
+        const label = document.createElement("label");
+        label.htmlFor = `significado-${indice}`;
+        label.textContent = letra;
+
+        const input = document.createElement("input");
+        input.id = `significado-${indice}`;
+        input.name = `significado-${indice}`;
+        input.type = "text";
+        input.placeholder = `O que ${letra} significa?`;
+        input.autocomplete = "off";
+        input.dataset.letra = letra;
+        input.required = true;
+
+        grupo.append(label, input);
+        campos.appendChild(grupo);
     });
 
-    frase = frase.replace(/\s+/g, " ").trim();
+    painel.hidden = false;
+    painel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    campos.querySelector("input").focus();
+}
+
+function finalizarConversaoParaNL(event) {
+    event.preventDefault();
+
+    const campos = [...document.querySelectorAll("#campos-mapeamento input")];
+    const mapping = {};
+    const erro = document.getElementById("erro-mapeamento");
+
+    for (const campo of campos) {
+        const texto = campo.value.trim();
+        if (!texto) {
+            erro.textContent = `Informe um significado para a proposição ${campo.dataset.letra}.`;
+            campo.focus();
+            return;
+        }
+        mapping[campo.dataset.letra] = texto;
+    }
+
+    const frase = traduzirFormulaParaNL(formulaPendente, mapping);
+    const mappingLines = Object.entries(mapping)
+        .map(([letra, texto]) => `${escapeHtml(letra)} = ${escapeHtml(texto)}`)
+        .join("<br>");
 
     document.getElementById("saida").innerHTML =
         `<strong>Frase em Linguagem Natural:</strong><br>${escapeHtml(frase)}<br><br>` +
-        `<strong>Mapeamento:</strong><br>${Object.entries(mapping)
-            .map(([l, t]) => `${escapeHtml(l)} = ${escapeHtml(t)}`)
-            .join("<br>")}`;
+        `<strong>Mapeamento:</strong><br>${mappingLines}`;
+
+    cancelarMapeamento();
+}
+
+function cancelarMapeamento() {
+    formulaPendente = "";
+    document.getElementById("mapeamento-cpc").hidden = true;
+    document.getElementById("erro-mapeamento").textContent = "";
 }
 
 // --- Limpa tudo ---
 function limparTudo() {
     document.getElementById("entrada").value = "";
-    document.getElementById("saida").innerHTML = "";
+    document.getElementById("saida").innerHTML =
+        '<p class="empty-state">Preencha o campo acima e escolha uma das conversões.</p>';
+    cancelarMapeamento();
+    document.getElementById("entrada").focus();
 }
 
 if (typeof module !== "undefined" && module.exports) {
@@ -324,6 +385,8 @@ if (typeof module !== "undefined" && module.exports) {
         parseAtom,
         parseConjunction,
         parseDisjunction,
-        escapeHtml
+        escapeHtml,
+        extrairProposicoes,
+        traduzirFormulaParaNL
     };
 }
